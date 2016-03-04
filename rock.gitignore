@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Mar  3 13:21:14 2016
+Spyder Editor
 
-@author: Kelley
+This is a temporary script file.
 """
 
+from __future__ import division
 Tia=177
 ma=44.6
 rhoa=0.7740
@@ -34,7 +35,7 @@ ht=(Nua*ka)/do
 g=9.81
 Ts=170 #this is a guess of the pipe surface temperature
 Taround=20 #this is the temp of air before heating between rocks
-beta=1/((Ts-Taround)+273) 
+beta=(1/((Ts-Taround)+273)) 
 delta=0.1 #this is a arbitrary length of the HX
 #
 #
@@ -46,6 +47,16 @@ Ra=Gr*Pra
 Nuc=(0.6+((0.387*(Ra**(1/6)))/((1+((0.559/Pra)**(9/16)))**(8/27))))**2
 hc=(Nuc*ka)/do
 #to complete the combined h
-x=delta/ka
+kr=3.7 #this is the thermal conductivity of the rock
+x=delta/kr
 #add this to the convective heat transfer and get combined
 hcombined=((1/hc)+x)**-1
+#solve for UA
+Ar=((((7.26*10**-2)/3)**2)*math.pi)-Aa
+UA=(1/(Aa*ht))+(1/(Ar*hcombined))
+#now calculate for Q
+Tro=23
+Tri=20
+Tao=175
+LMDT=((Tia-Tro)-(Tao-Tri))/(math.log10((Tia-Tro)/(Tao-Tri)))
+Q=UA*LMDT
