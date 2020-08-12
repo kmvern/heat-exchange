@@ -8,7 +8,12 @@ tube_ID  = []
 gauge_name = []
 OD_all = []
 OD_name = []
-
+gap = []
+OD_Pb = []
+ID_gas = []
+Pb_data = []
+Pb_inner = []
+name = []
 tube_OD_inch = [0.25, 0.375, 0.5, 0.625, 0.75,
                 0.875, 1, 1.125, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75,
                 3, 3.25, 3.5, 3.75, 4, 4.25, 4.5, 4.75, 5, 5.25]
@@ -68,24 +73,49 @@ for OD, n in zip(tube_OD, tube_name):
         gauge_name.append(g)
         OD_all.append(OD)
         OD_name.append(n)
+
 '''
 ID_all combines the ID2 diameters with the known inner diameters of schedule 10 pipes.
 '''
 
 Gas = pd.DataFrame([OD_name + pipe_name, gauge_name + pipe_name, tube_ID+pipe_ID, OD_all+pipe_OD], 
-            index = ['Name','Gauge', 'ID', 'OD']).T
+            index = ['Gas Name','Gauge', 'ID_gas', 'OD_gas']).T
 LBE = pd.DataFrame([OD_name + pipe_name, gauge_name + pipe_name, tube_ID+pipe_ID, OD_all+pipe_OD], index = ['Name','Gauge','ID_Pb', 'OD_Pb']).T
 
 
-Gas = Gas[Gas.OD != 0.00635].reset_index()
+Gas = Gas[Gas.OD_gas != 0.00635].reset_index()
 LBE = LBE[LBE.OD_Pb != 0.13335].reset_index()
-print(Gas, LBE)
 
-for i in Gas['ID']:
-    gas_gap = i - [OD_all+pipe_OD]
+df = pd.DataFrame([tube_OD + pipe_OD, tube_name+pipe_name]).T
 
+for i, k  in zip(df[0], df[1]):
+    gas_gap = (Gas['ID_gas'] - i)/2
+    gap.append(gas_gap)
+    length = np.ones(len(Gas['ID_gas']))
+    dia = i * length
+    x = [k]*len(Gas['ID_gas'])
+    name.append(x)
+    OD_Pb.append(dia)
+    ID_gas.append(Gas)
+    Pb_data.append(LBE)
 
-    #print(gas_gap)  
+gap_calc = pd.DataFrame(np.concatenate(gap), columns = ['GasGap'])
+OD_lbe = pd.DataFrame(np.concatenate(OD_Pb),columns = ['OD_LBE'])
+name_pb = pd.DataFrame(np.concatenate(name), columns = ['LBE Name'])
+ID_info = pd.concat(ID_gas, ignore_index = True)
+Pb_info = pd.concat(Pb_data, ignore_index = True)
+
+Final = pd.concat([ID_info, gap_calc, OD_lbe, name_pb], axis = 1)
+
+#gas gap options
+Final = Final[Final.GasGap >= 0.0002]
+Final = Final[Final.GasGap <= 0.00026]
+
+Total = pd.DataFrame([OD_name+pipe_name, OD_all+pipe_OD, tube_ID+pipe_ID],
+                     index =  ['Name', 'Outer', 'Inner']).T
+
+for type in Final:
+    print(Final['Gas Name'].loc[['T-1.125']])
 '''
 OD1 are all the possible outer diameters of the LBE pipe that must be subtracted and halved 
 with the ID2 from above to calculate the possible gas gap. 
